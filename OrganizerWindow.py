@@ -3,9 +3,9 @@ from tkcalendar import Calendar
 
 
 # ====== Главное окно ======
-class OrganizerWindow(ctk.CTk):
-    def __init__(self):
-        super().__init__()
+class OrganizerWindow(ctk.CTkToplevel):
+    def __init__(self, master):
+        super().__init__(master)
 
         self.title("Сетевой органайзер")
         self.geometry("800x600")
@@ -77,4 +77,3 @@ class OrganizerWindow(ctk.CTk):
         for frame in self.frames.values():
             frame.pack_forget()
         self.frames[name].pack(fill="both", expand=True)
-

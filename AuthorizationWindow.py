@@ -2,6 +2,7 @@ import customtkinter as ctk
 from OrganizerWindow import OrganizerWindow
 from RegisterWindow import RegisterWindow
 
+
 # ====== Окно авторизации ======
 class AuthorizationWindow(ctk.CTk):
     def __init__(self):
@@ -42,7 +43,8 @@ class AuthorizationWindow(ctk.CTk):
         self.login_button.pack(pady=10)
 
         # Кнопка регистрации
-        self.register_button = ctk.CTkButton(self.frame, text="Регистрация", fg_color="gray", command=self.open_register)
+        self.register_button = ctk.CTkButton(self.frame, text="Регистрация",
+                                             fg_color="gray", command=self.open_register)
         self.register_button.pack(pady=5)
 
     def toggle_password(self):
@@ -56,8 +58,8 @@ class AuthorizationWindow(ctk.CTk):
         password = self.password_entry.get()
 
         if username == "admin" and password == "1234":  # Заглушка
-            self.destroy()
-            main_app = OrganizerWindow()
+            self.withdraw()
+            main_app = OrganizerWindow(self)
             main_app.mainloop()
         else:
             ctk.CTkLabel(self.frame, text="Ошибка: неверные данные!", text_color="red").pack()
@@ -66,6 +68,7 @@ class AuthorizationWindow(ctk.CTk):
         """Открытие окна регистрации"""
         register_window = RegisterWindow(self)
         register_window.grab_set()  # Делаем модальным
+
 
 def main():
     app = AuthorizationWindow()
