@@ -12,11 +12,15 @@ class AuthorizationWindow(ctk.CTk):
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
 
+        # Фрейм для элементов формы
         self.frame = ctk.CTkFrame(self)
         self.frame.pack(pady=20, padx=40, fill="both", expand=True)
 
-        ctk.CTkLabel(self.frame, text="Вход в органайзер", font=("Arial", 20)).pack(pady=10)
+        # Заголовок
+        self.label = ctk.CTkLabel(self.frame, text="Вход в органайзер", font=("Arial", 20))
+        self.label.pack(pady=10)
 
+        # Поле логина
         self.username_entry = ctk.CTkEntry(self.frame, placeholder_text="Логин")
         self.username_entry.pack(pady=5)
 
@@ -24,16 +28,20 @@ class AuthorizationWindow(ctk.CTk):
         self.password_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
         self.password_frame.pack(pady=5, fill="x")
 
+        # Поле пароля
         self.password_entry = ctk.CTkEntry(self.password_frame, placeholder_text="Пароль", show="*")
         self.password_entry.pack(side="left", padx=(89, 5))
 
+        # Кнопка скрытия\открытия пароля
         self.show_password = False
         self.toggle_button = ctk.CTkButton(self.password_frame, text="👁", width=10, command=self.toggle_password)
         self.toggle_button.pack(side="left")
 
+        # Кнопка входа
         self.login_button = ctk.CTkButton(self.frame, text="Войти", command=self.login)
         self.login_button.pack(pady=10)
 
+        # Кнопка регистрации
         self.register_button = ctk.CTkButton(self.frame, text="Регистрация", fg_color="gray", command=self.open_register)
         self.register_button.pack(pady=5)
 
