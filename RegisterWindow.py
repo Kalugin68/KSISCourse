@@ -5,6 +5,16 @@ import customtkinter as ctk
 class RegisterWindow(ctk.CTkToplevel):
     def __init__(self, master):
         super().__init__(master)
+
+        # Получаем размеры экрана и устанавливаем геометрию окна
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        window_width = 550
+        window_height = 505
+        x = (screen_width // 2) - (window_width // 2)
+        y = (screen_height // 2) - (window_height // 2)
+        self.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
         self.title("Регистрация")
         self.geometry("400x350")
 
