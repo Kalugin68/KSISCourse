@@ -1,4 +1,6 @@
 import customtkinter as ctk
+from UserData import UserDatabase
+from tkinter import messagebox
 
 
 # ====== Окно регистрации ======
@@ -48,9 +50,15 @@ class RegisterWindow(ctk.CTkToplevel):
         username = self.new_username_entry.get()
         password = self.new_password_entry.get()
         correct_password = self.second_password_entry.get()
-        if username and password and correct_password:
 
-            self.withdraw()
+        if password == correct_password and username:
+            data_user_db = UserDatabase(username, password)
+            if data_user_db.connect_db():
+                data_user_db.create_user_db()
+            else:
+                messagebox.showerror("Ошибка", "Не удалось подключиться к базе данных.")
+
+            self.destroy()
 
     def toggle_password(self):
         """Переключение видимости пароля"""

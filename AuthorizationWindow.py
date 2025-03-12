@@ -1,12 +1,17 @@
 import customtkinter as ctk
+from tkinter import messagebox
 from OrganizerWindow import OrganizerWindow
 from RegisterWindow import RegisterWindow
+from ConnectDatabase import Database
 
 
 # ====== Окно авторизации ======
 class AuthorizationWindow(ctk.CTk):
     def __init__(self):
         super().__init__()
+
+        # Создаём объект БД
+        self.db = Database()
 
         self.__username = None
         self.__password = None
@@ -59,6 +64,9 @@ class AuthorizationWindow(ctk.CTk):
                                              fg_color="gray", command=self.open_register)
         self.register_button.pack(pady=5)
 
+        self.error_label = ctk.CTkLabel(self.frame, text="", text_color="red")
+        self.error_label.pack()
+
     # Доступ к защищённым полям
     def get_username(self):
         return self.__username
@@ -80,12 +88,27 @@ class AuthorizationWindow(ctk.CTk):
         self.set_username(self.username_entry.get())
         self.set_password(self.password_entry.get())
 
-        if self.get_username() == "admin" and self.get_password() == "1234":  # Заглушка
-            self.withdraw()
-            main_app = OrganizerWindow(self, self.get_username(), self.get_password())
-            main_app.mainloop()
+        if self.db.connect_db():  # Проверяем соединение с БД
+            try:
+                self.db.cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s",
+                                        (self.get_username(), self.get_password()))
+                user = self.db.cursor.fetchone()  # Получаем запись, если она есть
+
+                if user:
+                    self.withdraw()  # Скрываем окно авторизации
+                    main_app = OrganizerWindow(self, self.get_username(), self.get_password())  # Открываем главное окно
+                    main_app.mainloop()
+
+            except Exception as ex:
+                messagebox.showerror("Ошибка", f"Ошибка выполнения запроса: {ex}")
+
+            finally:
+                # Закрываем соединение
+                self.db.close_connection()
+
         else:
-            ctk.CTkLabel(self.frame, text="Ошибка: неверные данные!", text_color="red").pack()
+            # Очищаем текст ошибки
+            self.error_label.configure(text="Ошибка: неверные данные!")
 
     def open_register(self):
         """Открытие окна регистрации"""
