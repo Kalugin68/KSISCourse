@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from UserData import UserDatabase
+from Data import UserData
 from tkinter import messagebox
 
 
@@ -52,7 +52,7 @@ class RegisterWindow(ctk.CTkToplevel):
         correct_password = self.second_password_entry.get()
 
         if password == correct_password and username:
-            data_user_db = UserDatabase(username, password)
+            data_user_db = UserData.UserDatabase(username, password)
             if data_user_db.connect_db():
                 data_user_db.create_user_db()
             else:

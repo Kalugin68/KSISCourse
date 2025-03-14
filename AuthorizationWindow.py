@@ -1,17 +1,17 @@
 import customtkinter as ctk
 from tkinter import messagebox
-from OrganizerWindow import OrganizerWindow
-from RegisterWindow import RegisterWindow
-from ConnectDatabase import Database
+from OrganizerApp import OrganizerWindow
+import RegisterWindow
+from Data import ConnectDatabase
 
 
 # ====== Окно авторизации ======
-class AuthorizationWindow(ctk.CTk):
+class AuthorizationWindow(ctk.CTkToplevel):
     def __init__(self):
         super().__init__()
 
         # Создаём объект БД
-        self.db = Database()
+        self.db = ConnectDatabase.Database()
 
         self.__username = None
         self.__password = None
@@ -96,7 +96,7 @@ class AuthorizationWindow(ctk.CTk):
 
                 if user:
                     self.withdraw()  # Скрываем окно авторизации
-                    main_app = OrganizerWindow(self, self.get_username(), self.get_password())  # Открываем главное окно
+                    main_app = OrganizerWindow.OrganizerWindow(self.get_username())  # Открываем главное окно
                     main_app.mainloop()
 
             except Exception as ex:
@@ -112,7 +112,7 @@ class AuthorizationWindow(ctk.CTk):
 
     def open_register(self):
         """Открытие окна регистрации"""
-        register_window = RegisterWindow(self)
+        register_window = RegisterWindow.RegisterWindow(self)
         register_window.grab_set()  # Делаем модальным
 
 
