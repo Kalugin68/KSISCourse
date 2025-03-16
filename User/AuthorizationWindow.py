@@ -1,17 +1,14 @@
 import customtkinter as ctk
-from tkinter import messagebox
 from OrganizerApp import OrganizerWindow
-import RegisterWindow
-from Data import ConnectDatabase
+from User import RegisterWindow
 
 
 # ====== Окно авторизации ======
 class AuthorizationWindow(ctk.CTkToplevel):
-    def __init__(self):
+    def __init__(self, client, master):
         super().__init__()
-
-        # Создаём объект БД
-        self.db = ConnectDatabase.Database()
+        self.client = client
+        self.master = master
 
         self.__username = None
         self.__password = None
@@ -56,7 +53,7 @@ class AuthorizationWindow(ctk.CTkToplevel):
         self.toggle_button.pack(side="left")
 
         # Кнопка входа
-        self.login_button = ctk.CTkButton(self.frame, text="Войти", command=self.login)
+        self.login_button = ctk.CTkButton(self.frame, text="Войти", command=self.send_login_data)
         self.login_button.pack(pady=10)
 
         # Кнопка регистрации
@@ -83,42 +80,30 @@ class AuthorizationWindow(ctk.CTkToplevel):
         self.show_password = not self.show_password
         self.password_entry.configure(show="" if self.show_password else "*")
 
-    def login(self):
-        """Проверка логина (заглушка) и открытие основного окна"""
-        self.set_username(self.username_entry.get())
-        self.set_password(self.password_entry.get())
+    def send_login_data(self):
+        """Отправляет логин и пароль на сервер"""
+        self.set_username(self.username_entry.get().strip())
+        self.set_password(self.password_entry.get().strip())
 
-        if self.db.connect_db():  # Проверяем соединение с БД
-            try:
-                self.db.cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s",
-                                        (self.get_username(), self.get_password()))
-                user = self.db.cursor.fetchone()  # Получаем запись, если она есть
+        if not self.get_username() or not self.get_password():
+            self.error_label.configure(text="Введите логин и пароль!", text_color="red")
+            return
 
-                if user:
-                    self.withdraw()  # Скрываем окно авторизации
-                    main_app = OrganizerWindow.OrganizerWindow(self.get_username())  # Открываем главное окно
-                    main_app.mainloop()
+        # Отправляем данные на сервер
+        response = self.client.send_data(f"LOGIN;{self.get_username()};{self.get_password()}")
 
-            except Exception as ex:
-                messagebox.showerror("Ошибка", f"Ошибка выполнения запроса: {ex}")
 
-            finally:
-                # Закрываем соединение
-                self.db.close_connection()
+        if response == "OK":
+            self.error_label.configure(text="Успешный вход!", text_color="green")
 
+            self.destroy()  # Закрываем окно авторизации
+            main_app = OrganizerWindow.OrganizerWindow(self.get_username(), self.master)  # Открываем главное окно
+            main_app.mainloop()
         else:
-            # Очищаем текст ошибки
-            self.error_label.configure(text="Ошибка: неверные данные!")
+            self.error_label.configure(text="Неверные данные!", text_color="red")
 
     def open_register(self):
         """Открытие окна регистрации"""
-        register_window = RegisterWindow.RegisterWindow(self)
+        register_window = RegisterWindow.RegisterWindow(self.client)
         register_window.grab_set()  # Делаем модальным
 
-
-def main():
-    app = AuthorizationWindow()
-    app.mainloop()
-
-
-main()

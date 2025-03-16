@@ -6,13 +6,14 @@ from OrganizerApp import TasksPage
 
 # ====== Главное окно ======
 class OrganizerWindow(ctk.CTkToplevel):
-    def __init__(self, username):
+    def __init__(self, username, master):
         super().__init__()
+        self.master = master
 
         # Получаем размеры экрана и устанавливаем геометрию окна
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
-        window_width = 550
+        window_width = 1000
         window_height = 505
         x = (screen_width // 2) - (window_width // 2)
         y = (screen_height // 2) - (window_height // 2)
@@ -70,6 +71,9 @@ class OrganizerWindow(ctk.CTkToplevel):
         }
         self.add_image_with_tooltip()
         self.show_frame("tasks")  # Показываем страницу по умолчанию
+
+        # При закрытии окна - закрывать MainWindow
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
 
     # Доступ к логину и паролю
     def get_login_name(self):
@@ -145,3 +149,9 @@ class OrganizerWindow(ctk.CTkToplevel):
         image_main.putalpha(mask)
 
         return image_main
+
+    def on_close(self):
+        """Закрываем MainWindow при закрытии OrganizerWindow"""
+        if self.master:
+            self.master.destroy()  # Закрываем MainWindow
+

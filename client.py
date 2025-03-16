@@ -15,16 +15,33 @@ class Client:
             print(f"Ошибка соединения с сервером: {e}")
             return False
 
-    def send_credentials(self, username, password):
-        """Отправка логина и пароля на сервер"""
+    def reconnect(self):
+        """Пересоздаёт соединение с сервером"""
         try:
-            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            client_socket.connect((self.host, self.port))
-            client_socket.send(f"{username};{password}".encode("utf-8"))
+            self.client_socket.close()  # Закрываем старый сокет
+        except:
+            pass  # Если уже закрыт — просто игнорируем
 
-            response = client_socket.recv(1024).decode("utf-8")
-            client_socket.close()
-            return response
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Создаём новый
+        self.client_socket.connect((self.host, self.port))  # Подключаемся к серверу
+        print("[CLIENT] Соединение восстановлено")
+
+    def send_data(self, message):
+        """Отправка данных на сервер"""
+        try:
+            if not self.client_socket:
+                raise ConnectionError("Клиент не подключен к серверу")
+
+            self.client_socket.send(message.encode("utf-8"))
+            response = self.client_socket.recv(1024).decode("utf-8")  # Получаем ответ
+
+            if response == "FAIL":
+                print("[CLIENT] Ошибка входа, пробуем снова...")
+                self.reconnect()  # Восстанавливаем соединение перед следующей попыткой
+
+            return response  # Возвращаем ответ сервера
+
         except Exception as e:
-            print(f"[ERROR] {e}")
+            print(f"[CLIENT ERROR] Ошибка при отправке данных: {e}")
+            self.reconnect()  # Если произошла ошибка — пересоздаём соединение
             return "ERROR"

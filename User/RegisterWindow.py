@@ -1,12 +1,15 @@
 import customtkinter as ctk
-from Data import UserData
-from tkinter import messagebox
 
 
 # ====== Окно регистрации ======
 class RegisterWindow(ctk.CTkToplevel):
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, client):
+        super().__init__()
+        self.client = client
+
+        self.__username = None
+        self.__password = None
+        self.__correct_password = None
 
         # Получаем размеры экрана и устанавливаем геометрию окна
         screen_width = self.winfo_screenwidth()
@@ -46,22 +49,50 @@ class RegisterWindow(ctk.CTkToplevel):
         self.register_button = ctk.CTkButton(self.frame, text="Зарегистрироваться", command=self.register_user)
         self.register_button.pack(pady=10)
 
+        self.error_label = ctk.CTkLabel(self.frame, text="", text_color="red")
+        self.error_label.pack(pady=10)
+
     def register_user(self):
-        username = self.new_username_entry.get()
-        password = self.new_password_entry.get()
-        correct_password = self.second_password_entry.get()
+        self.set_username(self.new_username_entry.get())
+        self.set_password(self.new_password_entry.get())
+        self.set_correct_password(self.second_password_entry.get())
 
-        if password == correct_password and username:
-            data_user_db = UserData.UserDatabase(username, password)
-            if data_user_db.connect_db():
-                data_user_db.create_user_db()
+        if not self.get_username() or not self.get_password() or not self.get_correct_password():
+            self.error_label.configure(text="Введите логин и пароль!", text_color="red")
+            return
+
+        if self.get_password() == self.get_correct_password() and self.get_username():
+            # Отправляем данные на сервер
+            response = self.client.send_data(f"REGISTER;{self.get_username()};{self.get_password()}")
+
+            if response == "OK":
+                self.error_label.configure(text="Профиль создан!", text_color="green")
+                self.client.reconnect()
+                self.destroy()  # Закрываем окно регистрации
             else:
-                messagebox.showerror("Ошибка", "Не удалось подключиться к базе данных.")
+                self.error_label.configure(text="Данный аккаунт уже существует!", text_color="red")
 
-            self.destroy()
+        else:
+            self.error_label.configure(text="Пароли не совпадают!", text_color="red")
+            return
 
     def toggle_password(self):
         """Переключение видимости пароля"""
         self.show_password = not self.show_password
         self.new_password_entry.configure(show="" if self.show_password else "*")
         self.second_password_entry.configure(show="" if self.show_password else "*")
+
+    def get_username(self):
+        return self.__username
+    def set_username(self, username):
+        self.__username = username
+
+    def get_password(self):
+        return self.__password
+    def set_password(self, password):
+        self.__password = password
+
+    def get_correct_password(self):
+        return self.__correct_password
+    def set_correct_password(self, correct_password):
+        self.__correct_password = correct_password
