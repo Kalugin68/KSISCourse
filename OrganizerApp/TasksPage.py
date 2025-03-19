@@ -41,6 +41,8 @@ class TasksPage:
         self.error_label = ctk.CTkLabel(frame, text="")
         self.error_label.pack()
 
+        self.get_tasks_from_server()
+
         return frame
 
     def show_task_entry(self):
@@ -60,6 +62,13 @@ class TasksPage:
 
     def save_tasks_to_db(self):
         """Отправляет все задачи пользователя на сервер для сохранения в БД."""
+
+        if self.client.connect():
+            response = self.client.send_data(f"DELETE_TASKS_FROM_USER_ID;{self.user_id}")
+
+            if response == "OK":
+                print("[INFO] Задачи удалены")
+
         if not self.tasks:  # Проверяем, есть ли вообще задачи
             self.error_label.configure(text="Нет задач для сохранения!", text_color="red")
             return
@@ -92,6 +101,62 @@ class TasksPage:
             self.error_label.configure(text="Все задачи успешно сохранены!", text_color="green")
         else:
             self.error_label.configure(text="Ошибка при сохранении некоторых задач!", text_color="red")
+
+    def get_tasks_from_server(self):
+        """Запрашивает задачи с сервера и отображает их на экране"""
+        if self.client.connect():
+            # Отправляем команду на сервер для получения задач
+            task_data = self.client.send_data(f"GET_TASKS;{self.user_id}")
+
+            if task_data != "ERROR" and task_data != "NO_TASKS":
+                tasks = task_data.split("\n")
+                for task_info in tasks:
+                    if task_info.strip():  # Проверяем, что строка не пустая
+                        task_parts = task_info.split("|")
+                        if len(task_parts) == 2:  # Проверяем, что строка разделена на 2 части
+                            task_text, task_status = task_parts
+                            self.add_task_to_ui(task_text, task_status)
+                        else:
+                            print(f"[ERROR] Неверный формат задачи: {task_info}")
+            elif task_data == "NO_TASKS":
+                print("[INFO] У пользователя нет задач.")
+            else:
+                print("[ERROR] Не удалось получить задачи.")
+
+    def add_task_to_ui(self, task_text, task_status):
+        """Добавляет задачу в пользовательский интерфейс"""
+        task_frame = ctk.CTkFrame(self.tasks_frame)
+        task_frame.pack(fill="x", pady=5)
+
+        # Метка с текстом задачи
+        task_label = ctk.CTkLabel(task_frame, text=task_text, anchor="w", font=("Arial", 14, "normal"))
+        task_label.pack(side="left", padx=5, fill="x", expand=True)
+
+        # 🔹 Сохраняем оригинальный текст в словаре
+        self.task_texts[task_label] = task_text
+        self.tasks.append(task_text)
+
+        # Кнопка удаления
+        delete_button = ctk.CTkButton(task_frame, text="❌", width=30,
+                                      command=lambda: self.remove_task(task_frame, task_label, task_text))
+        delete_button.pack(side="right", padx=5)
+
+        # Кнопка редактирования
+        edit_button = ctk.CTkButton(task_frame, text="✏", width=30,
+                                    command=lambda: self.edit_task(task_label, task_frame, edit_button,
+                                                                   status_dropdown))
+        edit_button.pack(side="right", padx=5)
+
+        # Выпадающий список для выбора состояния
+        status_var = ctk.StringVar(value=task_status)
+        self.update_task_status(task_label, status_var)
+        status_options = ["Не выполнено", "В процессе", "Выполнено"]
+        status_dropdown = ctk.CTkComboBox(task_frame, values=status_options, variable=status_var, state="readonly",
+                                          command=lambda s: self.update_task_status(task_label, status_var))
+        status_dropdown.pack(side="right", padx=5)
+
+        # Добавляем состояние в словарь
+        self.task_status[task_label] = status_var
 
     def validate_input(self, value):
         """Функция для ограничения количества символов (макс. 100 символов)"""
