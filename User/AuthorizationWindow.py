@@ -10,6 +10,7 @@ class AuthorizationWindow(ctk.CTkToplevel):
         self.client = client
         self.master = master
 
+        self.user_id = None
         self.__username = None
         self.__password = None
 
@@ -97,10 +98,13 @@ class AuthorizationWindow(ctk.CTkToplevel):
             self.error_label.configure(text="Успешный вход!", text_color="green")
 
             self.destroy()  # Закрываем окно авторизации
-            main_app = OrganizerWindow.OrganizerWindow(self.get_username(), self.master)  # Открываем главное окно
+            main_app = OrganizerWindow.OrganizerWindow(self.get_username(), self.master,
+                                                       self.client)  # Открываем главное окно
             main_app.mainloop()
         else:
             self.error_label.configure(text="Неверные данные!", text_color="red")
+
+        return self.user_id
 
     def open_register(self):
         """Открытие окна регистрации"""

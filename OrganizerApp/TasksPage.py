@@ -3,12 +3,15 @@ import re
 
 
 class TasksPage:
-    def __init__(self, parent):
+    def __init__(self, parent, client, user_id):
         """Создаем менеджер задач внутри переданного родительского виджета"""
         self.parent = parent
+        self.client = client
+        self.user_id = user_id
         self.tasks = []  # Список для хранения задач
         self.task_entry_frame = None  # Фрейм для ввода задачи
         self.task_texts = {}  # Словарь для хранения оригинальных текстов задач
+        self.task_status = {}  # Словарь для хранения статусов
 
     def create_tasks_page(self):
         """Страница с задачами"""
@@ -24,15 +27,19 @@ class TasksPage:
 
         # Фрейм для кнопок
         self.button_tasks_frame = ctk.CTkFrame(frame)
-        self.button_tasks_frame.pack(fill="both", padx=5, pady=10)
+        self.button_tasks_frame.pack(fill="both", padx=5, pady=(10, 0))
 
         # Кнопки для работы с задачами
         self.add_task_button = ctk.CTkButton(self.button_tasks_frame, text="Добавить задачу",
                                              command=self.show_task_entry)
         self.add_task_button.grid(row=0, column=0, pady=10, padx=30)
 
-        self.edit_task_button = ctk.CTkButton(self.button_tasks_frame, text="Редактировать задачу")
-        self.edit_task_button.grid(row=0, column=1, pady=10, padx=30)
+        self.save_tasks_button = ctk.CTkButton(self.button_tasks_frame, text="Сохранить задачи",
+                                               command=self.save_tasks_to_db)
+        self.save_tasks_button.grid(row=0, column=1, pady=10, padx=30)
+
+        self.error_label = ctk.CTkLabel(frame, text="")
+        self.error_label.pack()
 
         return frame
 
@@ -50,6 +57,41 @@ class TasksPage:
 
             confirm_button = ctk.CTkButton(self.task_entry_frame, text="✔", width=30, command=self.add_task)
             confirm_button.pack(side="right", padx=5)
+
+    def save_tasks_to_db(self):
+        """Отправляет все задачи пользователя на сервер для сохранения в БД."""
+        if not self.tasks:  # Проверяем, есть ли вообще задачи
+            self.error_label.configure(text="Нет задач для сохранения!", text_color="red")
+            return
+
+        # Проверяем, совпадает ли количество задач и статусов
+        if len(self.tasks) != len(self.task_status):
+            self.error_label.configure(text="Ошибка: несоответствие задач и статусов!", text_color="red")
+            print("[ERROR] Количество задач и статусов не совпадает!")
+            return
+
+        all_success = True  # Флаг успешного сохранения всех задач
+
+        for task, task_status_var in zip(self.tasks, self.task_status.values()):
+            task_text = task  # Текст задачи
+
+            # Получаем сам текст статуса
+            task_status_text = task_status_var.get() if isinstance(task_status_var, ctk.StringVar) else task_status_var
+
+            if self.client.connect():
+                print(f"[INFO] Отправка задачи: '{task_text}', статус: '{task_status_text}'")
+
+                # Отправляем данные на сервер
+                response = self.client.send_data(f"ADD_TASK;{self.user_id};{task_text};{task_status_text}")
+
+                if response != "OK":
+                    all_success = False
+
+        # Проверяем, успешно ли сохранены все задачи
+        if all_success:
+            self.error_label.configure(text="Все задачи успешно сохранены!", text_color="green")
+        else:
+            self.error_label.configure(text="Ошибка при сохранении некоторых задач!", text_color="red")
 
     def validate_input(self, value):
         """Функция для ограничения количества символов (макс. 100 символов)"""
@@ -69,10 +111,11 @@ class TasksPage:
 
             # 🔹 Сохраняем оригинальный текст в словаре
             self.task_texts[task_label] = task_text
+            self.tasks.append(task_text)
 
             # Кнопка удаления
             delete_button = ctk.CTkButton(task_frame, text="❌", width=30,
-                                          command=lambda: self.remove_task(task_frame, task_label))
+                                          command=lambda: self.remove_task(task_frame, task_label, task_text))
             delete_button.pack(side="right", padx=5)
 
             # Кнопка редактирования
@@ -88,7 +131,8 @@ class TasksPage:
                                               command=lambda s: self.update_task_status(task_label, status_var))
             status_dropdown.pack(side="right", padx=5)
 
-            self.tasks.append(task_frame)
+            # Добавляем состояние в словарь
+            self.task_status[task_label] = status_var
 
         # Удаляем поле ввода после добавления задачи
         if self.task_entry_frame:
@@ -150,6 +194,8 @@ class TasksPage:
         """Обновление состояния задачи (меняет отображение в зависимости от статуса)"""
         status = status_var.get()
 
+        # обновляем состояние в словаре
+        self.task_status[task_label] = status_var
         # 🔹 Получаем оригинальный текст из словаря
         task_text = self.task_texts.get(task_label, task_label.cget("text"))
 
@@ -161,8 +207,9 @@ class TasksPage:
         elif status == "Не выполнено":
             task_label.configure(font=("Arial", 14, "normal"), text=task_text + " ❌", text_color="Red")
 
-    def remove_task(self, task_frame, task_label):
+    def remove_task(self, task_frame, task_label, task_text):
         """Удаление задачи"""
-        self.tasks.remove(task_frame)
+        self.tasks.remove(task_text)
         self.task_texts.pop(task_label, None)  # 🔹 Удаляем текст из словаря
+        self.task_status.pop(task_label)
         task_frame.destroy()

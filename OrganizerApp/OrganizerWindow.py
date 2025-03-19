@@ -6,9 +6,12 @@ from OrganizerApp import TasksPage
 
 # ====== Главное окно ======
 class OrganizerWindow(ctk.CTkToplevel):
-    def __init__(self, username, master):
+    def __init__(self, username, master, client):
         super().__init__()
         self.master = master
+        self.client = client
+        self.user_id = None
+        self.username = username
 
         # Получаем размеры экрана и устанавливаем геометрию окна
         screen_width = self.winfo_screenwidth()
@@ -61,10 +64,13 @@ class OrganizerWindow(ctk.CTkToplevel):
         self.content_frame = ctk.CTkFrame(self.main_frame)
         self.content_frame.pack(side="right", fill="both", expand=True)
 
+        # Получаем id пользователя
+        self.user_id = self.get_user_id()
+
         # Создаем страницы
         self.frames = {
             "author": self.create_author_page(),
-            "tasks": TasksPage.TasksPage(self.content_frame).create_tasks_page(),
+            "tasks": TasksPage.TasksPage(self.content_frame, self.client, self.user_id).create_tasks_page(),
             "notes": self.create_notes_page(),
             "calendar": self.create_calendar_page(),
             "settings": self.create_settings_page()
@@ -84,6 +90,21 @@ class OrganizerWindow(ctk.CTkToplevel):
         for frame in self.frames.values():
             frame.pack_forget()
         self.frames[name].pack(fill="both", expand=True)
+
+    def get_user_id(self):
+        """Запрашивает user_id у сервера по username"""
+        if self.client.connect():
+
+            response = self.client.send_data(f"GET_USER_ID;{self.username}")
+
+            if response:
+                self.user_id = response
+                print(f"[INFO] Получен user_id: {self.user_id}")
+            else:
+                print("[ERROR] Не удалось получить user_id")
+                self.user_id = None
+
+        return self.user_id
 
     def create_author_page(self):
         frame = ctk.CTkFrame(self.content_frame)
