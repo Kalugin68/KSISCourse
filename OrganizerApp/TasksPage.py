@@ -3,9 +3,9 @@ import re
 
 
 class TasksPage:
-    def __init__(self, parent, client, user_id):
+    def __init__(self, parent_frame, client, user_id):
         """Создаем менеджер задач внутри переданного родительского виджета"""
-        self.parent = parent
+        self.parent_frame = parent_frame
         self.client = client
         self.user_id = user_id
         self.tasks = []  # Список для хранения задач
@@ -15,7 +15,7 @@ class TasksPage:
 
     def create_tasks_page(self):
         """Страница с задачами"""
-        frame = ctk.CTkFrame(self.parent)
+        frame = ctk.CTkFrame(self.parent_frame)
         frame.pack(fill="both", expand=True)
 
         self.tasks_list_label = ctk.CTkLabel(frame, text="Список задач", font=("Arial", 18))
@@ -54,7 +54,7 @@ class TasksPage:
             # Ограничиваем количество символов, например, 100 символов
             self.task_entry = ctk.CTkEntry(self.task_entry_frame, width=400, placeholder_text="Введите задачу...",
                                            validate="key",
-                                           validatecommand=(self.parent.register(self.validate_input), '%P'))
+                                           validatecommand=(self.parent_frame.register(self.validate_input), '%P'))
             self.task_entry.pack(side="left", padx=5)
 
             confirm_button = ctk.CTkButton(self.task_entry_frame, text="✔", width=30, command=self.add_task)
@@ -217,7 +217,7 @@ class TasksPage:
         edit_entry.pack(side="left", padx=5, fill="x", expand=True)
 
         # Ограничиваем ввод в поле редактирования до 100 символов
-        edit_entry.configure(validate="key", validatecommand=(self.parent.register(self.validate_input), '%P'))
+        edit_entry.configure(validate="key", validatecommand=(self.parent_frame.register(self.validate_input), '%P'))
 
         # Кнопка подтверждения изменений
         self.confirm_button = ctk.CTkButton(task_frame, text="✔", width=30,

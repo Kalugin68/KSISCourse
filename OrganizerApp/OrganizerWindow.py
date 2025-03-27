@@ -2,12 +2,14 @@ import customtkinter as ctk
 from tkcalendar import Calendar
 from PIL import Image, ImageDraw
 from OrganizerApp import TasksPage
+from OrganizerApp import NotesPage
 
 
 # ====== Главное окно ======
 class OrganizerWindow(ctk.CTkToplevel):
     def __init__(self, username, master, client):
         super().__init__()
+        self.withdraw()  # <-- Скрываем окно в начале
         self.master = master
         self.client = client
         self.user_id = None
@@ -71,25 +73,32 @@ class OrganizerWindow(ctk.CTkToplevel):
         self.frames = {
             "author": self.create_author_page(),
             "tasks": TasksPage.TasksPage(self.content_frame, self.client, self.user_id).create_tasks_page(),
-            "notes": self.create_notes_page(),
+            "notes": NotesPage.NotePage(self.content_frame, self.client, self.user_id).create_notes_page(),
             "calendar": self.create_calendar_page(),
             "settings": self.create_settings_page()
         }
         self.add_image_with_tooltip()
-        self.show_frame("tasks")  # Показываем страницу по умолчанию
+
+        self.after(200, self.show_main_window)  # <-- Даем время на загрузку перед показом окна
 
         # При закрытии окна - закрывать MainWindow
         self.protocol("WM_DELETE_WINDOW", self.on_close)
+
+    def show_main_window(self):
+        """Отображает окно после полной загрузки интерфейса"""
+        self.show_frame("tasks")  # Загружаем нужный экран
+        self.deiconify()  # <-- Теперь показываем окно
 
     # Доступ к логину и паролю
     def get_login_name(self):
         return self.__login_name
 
     def show_frame(self, name):
-        """Отображает нужную страницу"""
+        """Отображает нужную страницу без мигания при запуске"""
         for frame in self.frames.values():
-            frame.pack_forget()
-        self.frames[name].pack(fill="both", expand=True)
+            frame.pack_forget()  # Сначала скрываем все
+
+        self.frames[name].pack(fill="both", expand=True)  # Затем показываем нужный
 
     def get_user_id(self):
         """Запрашивает user_id у сервера по username"""
@@ -109,13 +118,6 @@ class OrganizerWindow(ctk.CTkToplevel):
     def create_author_page(self):
         frame = ctk.CTkFrame(self.content_frame)
         ctk.CTkLabel(frame, text="Информация о профиле", font=("Arial", 18)).pack(pady=10)
-        return frame
-
-    def create_notes_page(self):
-        """Страница с заметками"""
-        frame = ctk.CTkFrame(self.content_frame)
-        ctk.CTkLabel(frame, text="Заметки", font=("Arial", 18)).pack(pady=10)
-        ctk.CTkTextbox(frame, width=400, height=300).pack(pady=5)
         return frame
 
     def create_calendar_page(self):
