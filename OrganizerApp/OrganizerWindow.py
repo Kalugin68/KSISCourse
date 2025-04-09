@@ -1,7 +1,6 @@
 import customtkinter as ctk
-from tkcalendar import Calendar
 from PIL import Image, ImageDraw
-from OrganizerApp import TasksPage, NotesPage, UserPage, ContactPage
+from OrganizerApp import TasksPage, NotesPage, SettingsPage, ContactPage
 
 
 # ====== Главное окно (органайзер) ======
@@ -74,15 +73,12 @@ class OrganizerWindow(ctk.CTkToplevel):
 
         # === Создание страниц ===
         self.frames = {
-            "user": UserPage.UserPage(self.content_frame, self.client, self.user_id,
-                                      self.username, self, self.authorization).create_user_page(),
             "tasks": TasksPage.TasksPage(self.content_frame, self.client, self.user_id).create_tasks_page(),
             "notes": NotesPage.NotePage(self.content_frame, self.client, self.user_id).create_notes_page(),
             "contacts": ContactPage.ContactPage(self.content_frame, self.client, self.user_id).create_contacts_page(),
-            "settings": self.create_settings_page()
+            "settings": SettingsPage.SettingsPage(self.content_frame, self.client, self.user_id,
+                                                  self.username, self, self.authorization).create_settings_page()
         }
-
-        self.add_image_with_tooltip()  # Привязываем события к аватарке
 
         self.after(200, self.show_main_window)  # Даем время на загрузку перед показом окна
 
@@ -117,32 +113,6 @@ class OrganizerWindow(ctk.CTkToplevel):
                 self.user_id = None
 
         return self.user_id
-
-    def create_settings_page(self):
-        """Создает страницу настроек"""
-        frame = ctk.CTkFrame(self.content_frame)
-        ctk.CTkLabel(frame, text="Настройки", font=("Arial", 18)).pack(pady=10)
-        return frame
-
-    def add_image_with_tooltip(self):
-        """Привязывает события к аватарке"""
-        self.image_author_label.bind("<Enter>", self.on_hover)  # Наведение
-        self.image_author_label.bind("<Leave>", self.on_leave)  # Уход
-        self.image_author_label.bind("<Button-1>", self.show_tooltip)  # Клик
-
-        self.tooltip = None  # Переменная для всплывающей подсказки
-
-    def show_tooltip(self, event):
-        """Показывает страницу пользователя при клике на аватар"""
-        self.show_frame("user")
-
-    def on_hover(self, event):
-        """Изменяет курсор при наведении"""
-        self.image_author_label.configure(cursor="hand2")  # Рука
-
-    def on_leave(self, event):
-        """Возвращает стандартный курсор"""
-        self.image_author_label.configure(cursor="")
 
     def round_image(self, image_main, radius):
         """Закругляет углы изображения"""

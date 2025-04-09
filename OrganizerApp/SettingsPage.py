@@ -2,7 +2,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 
 
-class UserPage:
+class SettingsPage:
     def __init__(self, parent_frame, client, user_id, username, main_window, authorization):
         """Создаем менеджер заметок внутри переданного родительского виджета"""
         self.parent_frame = parent_frame
@@ -12,12 +12,12 @@ class UserPage:
         self.main_window = main_window
         self.authorization = authorization
 
-    def create_user_page(self):
+    def create_settings_page(self):
         frame = ctk.CTkFrame(self.parent_frame)
         frame.pack(fill="both", expand=True, padx=40, pady=30)
 
         # 🔹 Заголовок
-        ctk.CTkLabel(frame, text="Информация о профиле", font=("Arial", 20, "bold")).pack(pady=(0, 20))
+        ctk.CTkLabel(frame, text="Настройки", font=("Arial", 20, "bold")).pack(pady=(0, 20))
 
         # 🔹 Фрейм с информацией о пользователе
         info_frame = ctk.CTkFrame(frame, corner_radius=10)
