@@ -6,8 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="87b913d5-9b1c-47c6-8c3f-e0417e516da3" name="Changes" comment="af">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MainWindow.py" beforeDir="false" afterPath="$PROJECT_DIR$/MainWindow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrganizerApp/NotesPage.py" beforeDir="false" afterPath="$PROJECT_DIR$/OrganizerApp/NotesPage.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/OrganizerApp/OrganizerWindow.py" beforeDir="false" afterPath="$PROJECT_DIR$/OrganizerApp/OrganizerWindow.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/OrganizerApp/TasksPage.py" beforeDir="false" afterPath="$PROJECT_DIR$/OrganizerApp/TasksPage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/User/AuthorizationWindow.py" beforeDir="false" afterPath="$PROJECT_DIR$/User/AuthorizationWindow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/User/RegisterWindow.py" beforeDir="false" afterPath="$PROJECT_DIR$/User/RegisterWindow.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client.py" beforeDir="false" afterPath="$PROJECT_DIR$/client.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -47,7 +51,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;debug&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Python/KSISCourse&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;inlay.hints&quot;
   }
 }</component>
   <component name="RecentsManager">
