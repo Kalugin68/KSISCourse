@@ -6,15 +6,19 @@ from User import RegisterWindow
 # ====== Окно авторизации ======
 class AuthorizationWindow(ctk.CTkToplevel):
     def __init__(self, client, master):
+        """Создает окно авторизации"""
         super().__init__()
-        self.client = client
-        self.master = master
+        ctk.set_appearance_mode("light")  # Установка темы (Light/Dark)
+        ctk.set_default_color_theme("green")  # Установка цветовой схемы
+
+        self.client = client  # Клиент для связи с сервером
+        self.master = master  # Родительское окно
 
         self.user_id = None
         self.__username = None
         self.__password = None
 
-        # Получаем размеры экрана и устанавливаем геометрию окна
+        # Получаем размеры экрана и устанавливаем геометрию окна по центру экрана
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         window_width = 550
@@ -24,11 +28,9 @@ class AuthorizationWindow(ctk.CTkToplevel):
         self.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
         self.title("Авторизация")
-        self.geometry("400x350")
-        ctk.set_appearance_mode("System")
-        ctk.set_default_color_theme("blue")
+        self.geometry("400x350")  # Устанавливаем размер окна
 
-        # Фрейм для элементов формы
+        # Основной фрейм
         self.frame = ctk.CTkFrame(self)
         self.frame.pack(pady=20, padx=40, fill="both", expand=True)
 
@@ -44,11 +46,11 @@ class AuthorizationWindow(ctk.CTkToplevel):
         self.password_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
         self.password_frame.pack(pady=5, fill="x")
 
-        # Поле пароля
+        # Поле ввода пароля
         self.password_entry = ctk.CTkEntry(self.password_frame, placeholder_text="Пароль", show="*")
         self.password_entry.pack(side="left", padx=(89, 5))
 
-        # Кнопка скрытия\открытия пароля
+        # Кнопка скрытия/отображения пароля
         self.show_password = False
         self.toggle_button = ctk.CTkButton(self.password_frame, text="👁", width=10, command=self.toggle_password)
         self.toggle_button.pack(side="left")
@@ -62,17 +64,20 @@ class AuthorizationWindow(ctk.CTkToplevel):
                                              fg_color="gray", command=self.open_register)
         self.register_button.pack(pady=5)
 
+        # Метка для вывода ошибок
         self.error_label = ctk.CTkLabel(self.frame, text="", text_color="red")
         self.error_label.pack()
 
-    # Доступ к защищённым полям
+    # Методы для работы с защищёнными полями
     def get_username(self):
         return self.__username
+
     def set_username(self, username):
         self.__username = username
 
     def get_password(self):
         return self.__password
+
     def set_password(self, password):
         self.__password = password
 
@@ -82,7 +87,7 @@ class AuthorizationWindow(ctk.CTkToplevel):
         self.password_entry.configure(show="" if self.show_password else "*")
 
     def send_login_data(self):
-        """Отправляет логин и пароль на сервер"""
+        """Отправляет логин и пароль на сервер для авторизации"""
         self.set_username(self.username_entry.get().strip())
         self.set_password(self.password_entry.get().strip())
 
@@ -90,24 +95,28 @@ class AuthorizationWindow(ctk.CTkToplevel):
             self.error_label.configure(text="Введите логин и пароль!", text_color="red")
             return
 
-        # Отправляем данные на сервер
-        response = self.client.send_data(f"LOGIN;{self.get_username()};{self.get_password()}")
+        if self.client.connect():
+            # Отправляем данные на сервер
+            response = self.client.send_data(f"LOGIN;{self.get_username()};{self.get_password()}")
 
+            if response == "OK":
+                self.error_label.configure(text="Успешный вход!", text_color="green")
 
-        if response == "OK":
-            self.error_label.configure(text="Успешный вход!", text_color="green")
+                # Очищаем поля
+                self.username_entry.delete(0, 'end')
+                self.password_entry.delete(0, 'end')
+                self.error_label.configure(text="")
 
-            self.destroy()  # Закрываем окно авторизации
-            main_app = OrganizerWindow.OrganizerWindow(self.get_username(), self.master,
-                                                       self.client)  # Открываем главное окно
-            main_app.mainloop()
-        else:
-            self.error_label.configure(text="Неверные данные!", text_color="red")
+                self.withdraw()  # Закрываем окно авторизации
+                # Открываем основное окно органайзера
+                main_app = OrganizerWindow.OrganizerWindow(self.get_username(), self.master, self.client, self)
+                main_app.mainloop()
+            else:
+                self.error_label.configure(text="Неверные данные!", text_color="red")
 
         return self.user_id
 
     def open_register(self):
         """Открытие окна регистрации"""
         register_window = RegisterWindow.RegisterWindow(self.client)
-        register_window.grab_set()  # Делаем модальным
-
+        register_window.grab_set()  # Делаем окно модальным
