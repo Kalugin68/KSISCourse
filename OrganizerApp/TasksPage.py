@@ -29,17 +29,17 @@ class TasksPage:
 
         # Фрейм для кнопок управления задачами
         self.button_tasks_frame = ctk.CTkFrame(frame)
-        self.button_tasks_frame.pack(fill="both", padx=5, pady=(10, 0))
+        self.button_tasks_frame.pack(padx=5, pady=(10, 0))
 
         # Кнопка добавления новой задачи
         self.add_task_button = ctk.CTkButton(self.button_tasks_frame, text="Добавить задачу",
                                              command=self.show_task_entry)
-        self.add_task_button.grid(row=0, column=0, pady=10, padx=30)
+        self.add_task_button.grid(row=0, column=0, pady=10, padx=15)
 
         # Кнопка сохранения всех задач в БД
         self.save_tasks_button = ctk.CTkButton(self.button_tasks_frame, text="Сохранить задачи",
                                                command=self.save_tasks_to_db)
-        self.save_tasks_button.grid(row=0, column=1, pady=10, padx=30)
+        self.save_tasks_button.grid(row=0, column=1, pady=10, padx=15)
 
         # Метка для отображения ошибок или сообщений
         self.error_label = ctk.CTkLabel(frame, text="")

@@ -2,15 +2,14 @@ import socket
 
 
 class Client:
-    def __init__(self, host, port):
+    def __init__(self, host):
         self.host = host
-        self.port = port
 
     def connect(self):
         """Установление соединения с сервером"""
         try:
             self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.client_socket.connect((self.host, self.port))
+            self.client_socket.connect((self.host, 10000))
             return True
         except Exception as e:
             print(f"Ошибка соединения с сервером: {e}")

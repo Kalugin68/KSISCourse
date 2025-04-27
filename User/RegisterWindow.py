@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from User import PasswordHasher
 
 
 # ====== Окно регистрации ======
@@ -78,8 +79,10 @@ class RegisterWindow(ctk.CTkToplevel):
         if self.get_password() == self.get_correct_password():
 
             if self.client.connect():
+                # Хешируем пароль перед отправкой
+                hashed_password = PasswordHasher.PasswordHasher.hash_password(self.get_password())
                 # Отправляем данные на сервер
-                response = self.client.send_data(f"REGISTER;{self.get_username()};{self.get_password()}")
+                response = self.client.send_data(f"REGISTER;{self.get_username()};{hashed_password}")
 
                 if response == "OK":
                     self.error_label.configure(text="Профиль создан!", text_color="green")
