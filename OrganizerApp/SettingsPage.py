@@ -1,5 +1,8 @@
 import customtkinter as ctk
 from tkinter import messagebox
+import os
+from tkinter import filedialog
+from PIL import Image
 
 
 class SettingsPage:
@@ -34,6 +37,7 @@ class SettingsPage:
         ctk.CTkLabel(stats_frame, text="Статистика активности", font=("Arial", 14, "bold")).pack(pady=(10, 5))
         ctk.CTkLabel(stats_frame, text=f"Задач создано: {stats.get('tasks')}", font=("Arial", 12)).pack()
         ctk.CTkLabel(stats_frame, text=f"Заметок: {stats.get('notes')}", font=("Arial", 12)).pack()
+        ctk.CTkLabel(stats_frame, text=f"Контактов: {stats.get('contacts')}", font=("Arial", 12)).pack()
 
         # 🔹 Фрейм с настройками
         settings_frame = ctk.CTkFrame(frame, corner_radius=10)
@@ -43,6 +47,10 @@ class SettingsPage:
 
         change_pass_btn = ctk.CTkButton(settings_frame, text="Сменить пароль", command=self.change_password)
         change_pass_btn.pack(pady=5)
+
+        # 🔹 Кнопка загрузки аватара
+        upload_avatar_btn = ctk.CTkButton(settings_frame, text="Загрузить аватар", command=self.upload_avatar)
+        upload_avatar_btn.pack(pady=5)
 
         ctk.CTkLabel(settings_frame, text="Тема оформления:", font=("Arial", 12)).pack(pady=(10, 2))
         theme_select = ctk.CTkComboBox(settings_frame, values=["Светлая", "Темная"], command=self.change_theme)
@@ -119,18 +127,18 @@ class SettingsPage:
                 response = self.client.send_data(f"GET_STATS;{self.user_id}")
 
                 if response == "NO_DATA":
-                    return {"tasks": 0, "notes": 0}
+                    return {"tasks": 0, "notes": 0, "contacts": 0}
                 elif response == "ERROR":
-                    return {"tasks": "-", "notes": "-"}
+                    return {"tasks": "-", "notes": "-", "contacts": "-"}
 
-                # Преобразуем строку вида tasks:12;notes:5;events:3
+                # Преобразуем строку вида tasks:12;notes:5;contacts:3
                 parts = response.split(";")
                 stats = {part.split(":")[0]: int(part.split(":")[1]) for part in parts}
                 return stats
 
             except Exception as e:
                 print(f"[CLIENT] Ошибка загрузки статистики: {e}")
-                return {"tasks": "-", "notes": "-"}
+                return {"tasks": "-", "notes": "-", "contacts": "-"}
 
     def change_theme(self, theme_name):
         """Смена темы оформления"""
@@ -143,3 +151,32 @@ class SettingsPage:
         """Функция выхода из аккаунта"""
         self.main_window.destroy()  # Закрываем главное окно
         self.authorization.deiconify()
+
+    def upload_avatar(self):
+        """Открывает диалог выбора изображения и обновляет аватар"""
+        file_path = filedialog.askopenfilename(
+            filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.bmp")]
+        )
+
+        if not file_path:
+            return  # Отмена выбора
+
+        try:
+            # Сохраняем выбранное изображение в папку пользователя
+            save_dir = "Images/Avatars"
+            os.makedirs(save_dir, exist_ok=True)
+            ext = os.path.splitext(file_path)[-1]
+            saved_path = os.path.join(save_dir, f"user_{self.user_id}{ext}")
+
+            # Открываем, уменьшаем, сохраняем
+            image = Image.open(file_path)
+            image = image.resize((80, 80))
+            image.save(saved_path)
+
+            messagebox.showinfo("Успех", "Аватар успешно обновлён.")
+
+            # Обновим аватар в главном окне
+            self.main_window.update_avatar(saved_path)
+
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Не удалось загрузить изображение: {e}")

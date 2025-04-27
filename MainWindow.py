@@ -16,13 +16,9 @@ class MainWindow(ctk.CTk):
         self.geometry("400x300")
 
         # Поля ввода для IP-адреса и порта
-        self.ip_entry = ctk.CTkEntry(self, placeholder_text="Введите IP-адрес сервера", width=170)
+        self.ip_entry = ctk.CTkEntry(self, placeholder_text="Введите IP-адрес сервера или имя хоста", width=260)
         self.ip_entry.pack(pady=10)
-        self.ip_entry.insert(0, "127.0.0.1")  # По умолчанию локальный сервер
 
-        self.port_entry = ctk.CTkEntry(self, placeholder_text="Введите порт сервера", width=170)
-        self.port_entry.pack(pady=10)
-        self.port_entry.insert(0, "2000")  # Указываем стандартный порт
 
         # Кнопка подключения
         self.connect_button = ctk.CTkButton(self, text="Подключиться", command=self.connect_to_server, width=170)
@@ -35,9 +31,8 @@ class MainWindow(ctk.CTk):
     def connect_to_server(self):
         """Попытка подключения к серверу"""
         ip = self.ip_entry.get()
-        port = int(self.port_entry.get())
 
-        self.my_client = Client(ip, port)  # Создаем клиентский объект
+        self.my_client = Client(ip)  # Создаем клиентский объект
 
         if self.my_client.connect():  # Проверяем успешность подключения
             try:

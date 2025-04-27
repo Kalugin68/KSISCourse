@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from PIL import Image, ImageDraw
 from OrganizerApp import TasksPage, NotesPage, SettingsPage, ContactPage
+import os
 
 
 # ====== Главное окно (органайзер) ======
@@ -41,8 +42,12 @@ class OrganizerWindow(ctk.CTkToplevel):
         self.nav_frame = ctk.CTkFrame(self.main_frame, width=200)
         self.nav_frame.pack(side="left", fill="y")
 
+        # === Попытка загрузить пользовательский аватар ===
+        custom_path = f"Images/Avatars/user_{self.get_user_id()}.jpg"
+        if os.path.exists(custom_path):
+            self.image_author = Image.open(custom_path)
+
         # === Аватар пользователя ===
-        self.image_author = Image.open("Images/author.jpg")  # Загружаем изображение
         self.rounded_image_author = self.round_image(self.image_author, 1320)  # Делаем изображение круглым
         self.image_author_tk = ctk.CTkImage(size=(80, 80), light_image=self.rounded_image_author,
                                             dark_image=self.rounded_image_author)
@@ -128,6 +133,19 @@ class OrganizerWindow(ctk.CTkToplevel):
         image_main.putalpha(mask)
 
         return image_main
+
+    def update_avatar(self, image_path):
+        """Обновляет изображение аватара в навигационной панели"""
+        try:
+            new_image = Image.open(image_path)
+            rounded = self.round_image(new_image, 1320)
+            new_ctk_img = ctk.CTkImage(size=(80, 80), light_image=rounded, dark_image=rounded)
+
+            self.image_author_label.configure(image=new_ctk_img)
+            self.image_author_label.image = new_ctk_img  # Чтобы не сборщик мусора не удалил
+
+        except Exception as e:
+            print(f"[AVATAR ERROR] Не удалось обновить аватар: {e}")
 
     def on_close(self):
         """Закрывает основное окно при выходе"""
